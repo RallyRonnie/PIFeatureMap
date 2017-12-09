@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FeatureMap</title>
+
+    <script type="text/javascript" src="/apps/2.1/sdk.js"></script>
+
+    <script type="text/javascript">
+        Rally.onReady(function () {
+                Ext.define("FeatureMap",{extend:"Rally.app.TimeboxScopedApp",componentCls:"app",scopeType:"release",comboboxConfig:{fieldLabel:"Select a PI:",labelWidth:100,width:300},onScopeChange:function(){this._DrawBoard()},_DrawBoard:function(){app=this,console.log("DRAWING BOARD");var filterState=app.getSetting("PIStateFilter"),PIFilter=Ext.create("Ext.util.Filter",{});"-- No Entry --"!=filterState&""!=filterState&&(PIFilter=Ext.create("Ext.util.Filter",{property:"State",value:filterState})),Ext.create("Rally.data.wsapi.Store",{model:"PortfolioItem/"+app.getSetting("PITypeField"),fetch:["Name","ObjectID","Project","FormattedID","Rank","Parent"],limit:1/0,filters:[this.getContext().getTimeboxScope().getQueryFilter()],sorters:[{property:app.getSetting("SortCol"),direction:"ASC"}],autoLoad:!0,listeners:{load:function(myStore,myData,mySuccess){var columns=[{record:null,value:null,columnHeaderConfig:{headerData:{PIhdr:"No Parent"}}}];_.each(myData,function(record){columns.push({record:record,value:record.getRef().getRelativeUri(),columnHeaderConfig:{headerData:{PIhdr:'<p style="color: blue; font-weight: bolder">'+(null!==record.get("Parent")?record.get("Parent").Name+": ":" (No Parent)")+'</p><p><style="color: black; font-weight: bold">'+record.get("FormattedID")+" - "+record.get("_refObjectName")+"</p>"}}})}),app._addNewButton(),app._addBoard(columns)},scope:this}})},_addNewButton:function(){app.addButton&&app.addButton.destroy(),addNewConfig={xtype:"rallyaddnew",recordTypes:["User Story"],ignoredRequiredFields:["Name","ScheduleState","Project","Owner"],listeners:{create:function(addNew,record){}},showAddWithDetails:!0},app.addButton=this.add(addNewConfig)},_addBoard:function(columns){this.down("#myBoard")&&this.remove("myBoard"),boardConfig={xtype:"rallycardboard",types:["User Story"],storeConfig:{filters:app.getQueryFilter()},attribute:app.getSetting("PITypeField"),itemId:"myBoard",context:this.getContext(),enableRanking:!0,cardConfig:{fields:["Name","PlanEstimate","Owner","ScheduleState"],editable:!0,showIconsAndHighlightBorder:!0,showReadyIcon:!0,showBlockedIcon:!0,showColorIcon:!0,showPlusIcon:!0,showGearIcon:!0},columnConfig:{columnHeaderConfig:{headerTpl:"{PIhdr}"},listeners:{scope:this,beforecarddroppedsave:function(column,card){var rec=card.getRecord();rec.set("PortfolioItem",column.getValue())}}},columns:columns,rowConfig:{field:"Project",enableCrossRowDragging:!0,sortDirection:"ASC"}},console.log(boardConfig),app.board=this.add(boardConfig)},_showMask:function(msg){this.getEl()&&(this.getEl().unmask(),this.getEl().mask(msg))},_hideMask:function(){this.getEl().unmask()},getSettingsFields:function(){var values=[{xtype:"label",forId:"myFieldId1",text:"PI Filter",margin:"0 0 0 10"},{name:"PIStateFilterPicker",xtype:"rallyfieldvaluecombobox",model:"PortfolioItem/"+app.getSetting("PITypeField"),field:"State",boxLabelAlign:"after",fieldLabel:"State",margin:"0 0 15 50",labelStyle:"width:200px;",afterLabelTpl:"Click on State to filter Features in columns",handlesEvents:{myspecialevent1:function(field,model){this.setField(field.raw.fieldDefinition)}},listeners:{select:function(state_picker,records){this.fireEvent("state_selected",_.first(records).get("name"))}},bubbleEvents:["state_selected"]},{name:"PIStateFilter",width:200,xtype:"rallytextfield",boxLabelAlign:"after",fieldLabel:"Filter State",readOnly:!0,margin:"0 0 15 50",labelStyle:"width:200px;",handlesEvents:{state_selected:function(state){this.setValue(state)}}},{xtype:"label",forId:"myFieldId2",text:"PI Type",margin:"0 0 0 10"},{name:"PITypeField",xtype:"rallytextfield",margin:"0 0 15 50",label:"Portfolio Item Column Type (MUST be lowest level PI that can parent stories)",labelWidth:200},{xtype:"label",forId:"myFieldId3",text:"Sort Columns by:",margin:"0 0 0 10"},{xtype:"rallyradiofield",fieldLabel:"Parent",margin:"0 0 15 50",name:"SortCol",label:"Swimlane",inputValue:"Parent"},{xtype:"rallyradiofield",margin:"0 0 15 50",fieldLabel:"Rank",name:"SortCol",inputValue:"Rank"},{type:"query"}];return values},config:{defaultSettings:{PIStateFilter:"-- No Entry --",PITypeField:"Feature",SortCol:"Rank"}},getQueryFilter:function(){var queries=[];return app.getSetting("query")&&queries.push(Rally.data.QueryFilter.fromQueryString(app.getSetting("query"))),queries}});
+
+            Rally.launchApp('FeatureMap', {
+                name:"FeatureMap",
+	            parentRepos:""
+            });
+
+        });
+    </script>
+
+
+    <style type="text/css">
+        
+    </style>
+</head>
+<body>
+</body>
+</html>
