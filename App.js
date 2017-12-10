@@ -7,7 +7,9 @@ Ext.define('FeatureMap', {
         labelWidth: 100,
         width: 300
     },
-
+	requires: [
+        'Rally.ui.cardboard.plugin.FixedHeader'
+    ],
     onScopeChange: function() {
 //		this._showMask("Loading Data");
         this._DrawBoard();
@@ -53,7 +55,7 @@ Ext.define('FeatureMap', {
 							columnHeaderConfig: {
 								headerData: {
 // <hr size="2" style="color: red" /><center><p style="color: red; font-weight: bold">> R3 CUT LINE <</p></center><hr size="2" style="color: red" />
-									PIhdr: '<p style="color: blue; font-weight: bolder">' + (record.get('Parent') !== null ? record.get('Parent').Name + ': ' : ' (No Parent)') + '</p><p><style="color: black; font-weight: bold">' + record.get('FormattedID') + ' - ' + record.get('_refObjectName') + '</p>'
+									PIhdr: '<p style="color: blue; font-weight: bolder">' + (record.get('Parent') !== null ? record.get('Parent').Name : ' (No Parent)') + '<hr size="2" /><p><style="color: black; font-weight: bold">' + record.get('FormattedID') + ' - ' + record.get('_refObjectName') + '</>'
 								}
 							}
 						});
@@ -110,6 +112,7 @@ Ext.define('FeatureMap', {
 				showPlusIcon: true,
 				showGearIcon: true
 			},
+			plugins: [{ptype:'rallyfixedheadercardboard'}],
 			columnConfig: {
 				columnHeaderConfig: {
 					headerTpl: '{PIhdr}'
@@ -122,12 +125,12 @@ Ext.define('FeatureMap', {
 					}
 				}
 			},
-			columns: columns,
 			rowConfig: {
-				field: 'Project',
+				field: app.getSetting('Swimlane'),
 				enableCrossRowDragging: true,
 				sortDirection: 'ASC' // ASC | DESC
-			}
+			},
+			columns : columns
 		};
 		console.log(boardConfig);
 		app.board = this.add(boardConfig);
@@ -210,7 +213,7 @@ Ext.define('FeatureMap', {
 			{
 				xtype: 'rallyradiofield',
 				fieldLabel: 'Parent',
-				margin: '0 0 15 50',
+				margin: '0 0 0 50',
 				name: 'SortCol',
 				label: 'Swimlane',
 				inputValue: 'Parent'
@@ -223,6 +226,27 @@ Ext.define('FeatureMap', {
 				inputValue: 'Rank'
 			},
 			{
+				xtype: 'label',
+				forId: 'myFieldId4',
+				text: 'Swimlanes:',
+				margin: '0 0 0 10'
+			},
+			{
+				xtype: 'rallyradiofield',
+				fieldLabel: 'Teams',
+				margin: '0 0 0 50',
+				name: 'Swimlane',
+//				label: 'Teams',
+				inputValue: 'Project'
+			},
+			{
+				xtype: 'rallyradiofield',
+				margin: '0 0 15 50',
+				fieldLabel: 'None',
+				name: 'Swimlane',
+				inputValue: ''
+			},
+			{
 				type: 'query'
 			}
 		];
@@ -233,6 +257,7 @@ Ext.define('FeatureMap', {
 			PIStateFilter: '-- No Entry --',
 			PITypeField: 'Feature',
 			SortCol: 'Rank',
+			Swimlane: 'Project'
 		}
 	},
 	getQueryFilter: function () {

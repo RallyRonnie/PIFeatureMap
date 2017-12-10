@@ -3,33 +3,30 @@ Story Map SDK 2
 
 ## Overview
 
-The Story Map APP shows all of the high level themes (Features) your users need to do, broken down 
-into the smaller stories (User Stories) a user would do as part of each theme.  
-See [this](http://www.agileproductdesign.com/blog/the_new_backlog.html) blog post on 
-Story Maps by Jeff Patton for more information.
+The SAFe PI Feature Map APP shows Features assigned to the selected PI as columns. The feature 
+parent is displayed above the Feature if present. Child User Stories are cards in the 
+columns. By default, the 'Project' field is used as swim lanes for Teams, but can be 
+disabled in APP Settings.  
 
 ## Screen Shot
 
-![Story Map](https://github.com/RallyRonnie/StoryMap2/blob/master/screenshot.png)
+![Feature Map](https://github.com/RallyRonnie/PIFeatureMap/blob/master/screenshot.png)
 
 ## How to Use
 
-You can use the APP at your team level, program level or setup a separate Project for each Story Map. 
-You can then create your Feature set in the Portfolio->Portfolio Items page and also create your appropriate 
-Releases or Iterations in the Plan->Time Boxes page. New stories can then be created on the board and placed into
-the appropriate row and column mapping the story. Selecting a story ID will pop the quick details page  (QDP)to the right
-to further complete the story details.
+You can use the APP at your ART or team level to breakdown and organize the program increment features.
+Selecting a story ID will pop the quick details page  (QDP)to the right to further complete any story details.
 
-NOTE: If a row is not displayed, that indicates that there is not a User Story assigned to that Iteration or Release.
-You can select a User Story, and on the QDP, select the desired Iteration or Release and it will now display on the 
+NOTE: If a row is not displayed, that indicates that there is not a User Story assigned to that Team.
+You can select a User Story, and on the QDP, select the desired Project and it will now display on the 
 board.
 
 There are new APP options under the APP gear->Edit App Settings. Here is a screenshot. You can easily filter
 the Features (or lowest level PI) using the State picker. You can also change the base Portfolio Item name if your
-default configuration does not use "Feature" as the lowest level PI. You can also choose the row type (either Iteration
-or Release). The query field applies to filtering user story cards if needed.
+default configuration does not use "Feature" as the lowest level PI. You can also configure sort and swim lane
+options. The query field applies to filtering user story cards if needed.
 
-![Story Map](https://raw.github.com/RallyRonnie/StoryMap2/master/settings.png)
+![Story Map](https://raw.github.com/RallyRonnie/PIFeatureMap/master/settings.png)
 
 ### Running the App
 
@@ -38,7 +35,7 @@ Then copy App.html from the deploy folder into the HTML text area. That's it, it
 to use. See [this](http://www.rallydev.com/help/use_apps#create) help link if you don't know how 
 to create a dashboard page for Custom HTML apps.
 
-Or you can just click [here](https://raw.github.com/RallyRonnie/StoryMap2/master/deploy/App.html) to find 
+Or you can just click [here](https://raw.github.com/RallyRonnie/PIFeatureMap/master/deploy/App.html) to find 
 the file and copy it into the custom HTML app.
 
 ## License
