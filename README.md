@@ -1,4 +1,4 @@
-Story Map SDK 2
+PI Feature Map - SDK 2
 =========================
 
 ## Overview
