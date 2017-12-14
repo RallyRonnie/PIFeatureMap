@@ -18,26 +18,52 @@
     },
 	requires: [
         'Rally.ui.cardboard.plugin.FixedHeader'
-    ],
+	],
     onScopeChange: function() {
-//		this._showMask("Loading Data");
-        this._DrawBoard();
-    },
-	_DrawBoard: function () {
+		this._getLowPI();
+	},
+	_getLowPI: function() {
+		if (!this.piType ) {
+			Ext.create('Rally.data.WsapiDataStore', {
+				autoLoad: true,
+				remoteFilter: false,
+				model: 'TypeDefinition',
+				sorters: [{
+				  property: 'Ordinal',
+				  direction: 'Desc'
+				}],
+				filters: [{
+				  property: 'Parent.Name',
+				  operator: '=',
+				  value: 'Portfolio Item'
+				}, {
+				  property: 'Creatable',
+				  operator: '=',
+				  value: 'true'
+				}],
+				listeners: {
+					load: function (store, recs) {
+						piTypes = {};				
+						Ext.Array.each(recs, function (type) {
+							// console.log('Found PI Type', type, type.get('Ordinal'), type.get('TypePath'));
+							piTypes[type.get('Ordinal') + ''] = type.get('TypePath');
+						});
+					this.piType = piTypes['0'];
+					this._DrawBoard();
+				},
+				scope: this
+			}
+		});
+	} else this._DrawBoard();
+},
+_DrawBoard: function () {
 		app = this;
-		console.log("DRAWING BOARD");
-		var filterState = app.getSetting('PIStateFilter');
-		//		console.log('in _onPIsLoaded');
-		var PIFilter = Ext.create('Ext.util.Filter', {});
-		if (filterState != '-- No Entry --' & filterState != '') {
-			PIFilter = Ext.create('Ext.util.Filter', {
-				property: "State",
-				value: filterState
-			});
-		}
+		var hdrFontSize = app.getSetting('hdrFontSize');
+		var smSize = +hdrFontSize-4;
+		var smFontSize = smSize.toString();
 		Ext.create('Rally.data.wsapi.Store', {
-			model: 'PortfolioItem/' + app.getSetting('PITypeField'),
-			fetch: ['Name', 'ObjectID', 'Project', 'FormattedID', 'Rank', 'Parent'],
+			model: this.piType,
+			fetch: ['Name', 'ObjectID', 'Project', 'FormattedID', 'Rank', 'Parent', 'Release', 'DisplayColor', 'PreliminaryEstimateValue', 'PercentDoneByStoryPlanEstimate', 'LeafStoryPlanEstimateTotal'],
 			limit: Infinity,
 			filters: [this.getContext().getTimeboxScope().getQueryFilter()],
 			sorters: [{
@@ -52,24 +78,46 @@
 						value: null,
 						columnHeaderConfig: {
 							headerData: {
-								PIhdr: 'No Parent'
+								PIhdr: '<p style="color: Red; font-size: ' + hdrFontSize + 'px"; font-weight: bolder>No Parent</>'
 							}
 						}
 					}];
 					_.each(myData, function (record) {
+// console.log(app.getSetting('useColor'));
+						var fpiColor = (app.getSetting('useFColor')) ? record.get('DisplayColor') : 'Black';
+						var ppiColor = (record.get('Parent') !== null ) ? (app.getSetting('usePColor') ? record.get('Parent').DisplayColor : 'Black' ) : 'Grey';
+						var hdrStr = (app.getSetting('showParent') ?
+							'<p style="color:' + ppiColor + '; font-size: ' + hdrFontSize + 'px; font-weight: bolder">' +
+							(record.get('Parent') !== null ?  '<a href="https://rally1.rallydev.com/#/detail' +
+							record.get('Parent')._ref + '" target = "_top">' +
+							record.get('Parent').FormattedID +
+							'</a> - ' +
+							record.get('Parent').Name : ' (No Parent)') +
+							'<hr size="2" />' : '') + 
+							'<p style="color: ' + fpiColor + '; font-size: ' + hdrFontSize + 'px; font-weight: bolder"><a href="https://rally1.rallydev.com/#/detail' +
+							record.get('_ref') + '" target = "_top">' +
+							record.get('FormattedID') +
+							'</a> - ' +
+							record.get('_refObjectName') +
+							(app.getSetting('showCounts') ?
+							'<p style="color: grey; font-weight: normal; font-size: ' + smFontSize + 'px">(' + 
+							(record.get('PreliminaryEstimateValue') !== null ? record.get('PreliminaryEstimateValue') : '0') + 
+							' FP / ' + (record.get('LeafStoryPlanEstimateTotal') !== null ? record.get('LeafStoryPlanEstimateTotal')  : '0') + ' SP)'
+							: '') +
+							'</>';
+// console.log(record);		
 						columns.push({
 //							tpl: Ext.create("Rally.ui.renderer.template.FormattedIDTemplate"),
 							record: record,
 							value: record.getRef().getRelativeUri(),
 							columnHeaderConfig: {
 								headerData: {
-// <hr size="2" style="color: red" /><center><p style="color: red; font-weight: bold">> R3 CUT LINE <</p></center><hr size="2" style="color: red" />
-									PIhdr: '<p style="color: blue; font-weight: bolder">' + (record.get('Parent') !== null ? record.get('Parent').Name : ' (No Parent)') + '<hr size="2" /><p><style="color: black; font-weight: bold">' + record.get('FormattedID') + ' - ' + record.get('_refObjectName') + '</>'
+									PIhdr: hdrStr
 								}
 							}
 						});
 					});
-					app._addNewButton();
+					if (app.getSetting('showAddnew')) { app._addNewButton(); }
 					app._addBoard(columns);
 				},
 				scope: this
@@ -107,12 +155,12 @@
 			storeConfig: {
 				filters: app.getQueryFilter()
 			},
-			attribute: app.getSetting('PITypeField'),
+			attribute: this.piType.split('/')[1],
 			itemId: 'myBoard',
 			context: this.getContext(),
 			enableRanking: true,
 			cardConfig: {
-				fields: ['Name', 'PlanEstimate', 'Owner', 'ScheduleState'],
+				fields: app.getSetting('cardFields').split(','),
 				editable: true,
 				showIconsAndHighlightBorder: true,
 				showReadyIcon: true,
@@ -141,7 +189,7 @@
 			},
 			columns : columns
 		};
-		console.log(boardConfig);
+//		console.log(boardConfig);
 		app.board = this.add(boardConfig);
 	},
 	_showMask: function(msg) {
@@ -154,82 +202,117 @@
 		this.getEl().unmask();
 	},
 	getSettingsFields: function () {
-		var values = [{
-				xtype: 'label',
-				forId: 'myFieldId1',
-				text: 'PI Filter',
-				margin: '0 0 0 10'
-			},
-			{
-				name: 'PIStateFilterPicker',
-				xtype: 'rallyfieldvaluecombobox',
-				model: 'PortfolioItem/' + app.getSetting('PITypeField'),
-				field: 'State',
+		var values = [
+			{   // Card Field Picker
+				xtype: 'rallyfieldpicker',
+				name: 'cardFieldPicker',
+				fieldLabel: 'Card Fields:',
+				alwaysExpanded: false,
+				autoExpand: true,
+				alwaysSelectedValues: ["Name","Owner"],
+				modelTypes: ['User Story'],
 				boxLabelAlign: 'after',
-				fieldLabel: 'State',
-				margin: '0 0 15 50',
+				margin: '0 0 15 400',
 				labelStyle: "width:200px;",
-				afterLabelTpl: 'Click on State to filter Features in columns',
 				handlesEvents: {
-					myspecialevent1: function (field, model) {
+					myspecialevent2: function (field, model) {
 						this.setField(field.raw.fieldDefinition);
 					}
 				},
 				listeners: {
-					select: function (state_picker, records) {
+					select: function (field_picker, value, values) {
 //						console.log("state_picker", state_picker, "records", records);
-						this.fireEvent("state_selected", _.first(records).get("name"));
-					}
+						this.fireEvent("field_selected", values);
+					},
+					deselect: function (field_picker, value, values) {
+//						console.log("state_picker", state_picker, "records", records);
+						this.fireEvent("field_selected", values);
+					},
 				},
-				bubbleEvents: ['state_selected']
+				bubbleEvents: ['field_selected']
 			},
 			{
-				name: 'PIStateFilter',
-				width: 200,
+				name: 'cardFields',
+				hidden: true,
 				xtype: 'rallytextfield',
-				boxLabelAlign: 'after',
-				fieldLabel: 'Filter State',
-				readOnly: true,
-				margin: '0 0 15 50',
-				labelStyle: "width:200px;",
-				// afterLabelTpl: 'A comma delimited list of the states to calculated cycle time for<br/><span style="color:#999999;">eg. <i>In-Progress,Completed</i></span>',
 				handlesEvents: {
-					state_selected: function (state) {
-//						console.log("state_selected", this.getValue(), state);
-						this.setValue(state);
-					},
+					field_selected: function (fields) {
+//						console.log("fields_selected", this.getValue(), fields);
+						var fieldStr = '';
+						_.each(fields, function (field) {
+							fieldStr += field.get("name") + ',';
+						});
+						this.setValue(fieldStr.slice(0,-1));
+					}
 				}
 			},
 			{
-				xtype: 'label',
-				forId: 'myFieldId2',
-				text: 'PI Type',
-				margin: '0 0 0 10'
-			},
-			{
-				name: 'PITypeField',
-				xtype: 'rallytextfield',
-				margin: '0 0 15 50',
-				label: "Portfolio Item Column Type (MUST be lowest level PI that can parent stories)",
-				labelWidth: 200
+				xtype: 'rallycheckboxfield',
+				margin: '0 0 15 0',
+				labelWidth: 200,
+				fieldLabel: 'Show Add New Story:',
+				name: 'showAddnew'
 			},
 			{
 				xtype: 'label',
 				forId: 'myFieldId3',
-				text: 'Sort Columns by:',
-				margin: '0 0 0 10'
+				text: 'Column Settings:',
+				margin: '0 0 0 0'
+			},
+			{
+				xtype: 'rallytextfield',
+				name: 'hdrFontSize',
+				fieldLabel: 'Column Header Font Size:',
+				maxLength: 2,
+				labelWidth: 200,
+				width: 250,
+				margin: '0 0 0 20'
+			},
+			{
+				xtype: 'rallycheckboxfield',
+				margin: '0 0 0 20',
+				labelWidth: 200,
+				fieldLabel: 'Show Parent:',
+				name: 'showParent'
+			},
+			{
+				xtype: 'rallycheckboxfield',
+				labelWidth: 200,
+				margin: '0 0 0 20',
+				fieldLabel: 'Color for Feature Title:',
+				name: 'useFColor'
+			},
+			{
+				xtype: 'rallycheckboxfield',
+				labelWidth: 200,
+				margin: '0 0 0 20',
+				fieldLabel: 'Color for Parent Title:',
+				name: 'usePColor'
+			},
+			{
+				xtype: 'rallycheckboxfield',
+				margin: '0 0 5 20',
+				labelWidth: 200,
+				fieldLabel: 'Show Counts:',
+				name: 'showCounts'
+			},
+			{
+				xtype: 'label',
+				forId: 'myFieldId3',
+				text: 'Sort by:',
+				margin: '0 0 0 20'
 			},
 			{
 				xtype: 'rallyradiofield',
 				fieldLabel: 'Parent',
-				margin: '0 0 0 50',
+				margin: '0 0 0 40',
 				name: 'SortCol',
 				label: 'Swimlane',
 				inputValue: 'Parent'
 			},
 			{
 				xtype: 'rallyradiofield',
-				margin: '0 0 15 50',
+				margin: '0 0 15 40',
 				fieldLabel: 'Rank',
 				name: 'SortCol',
 				inputValue: 'Rank'
@@ -238,19 +321,18 @@
 				xtype: 'label',
 				forId: 'myFieldId4',
 				text: 'Swimlanes:',
-				margin: '0 0 0 10'
+				margin: '0 0 0 0'
 			},
 			{
 				xtype: 'rallyradiofield',
 				fieldLabel: 'Teams',
-				margin: '0 0 0 50',
+				margin: '0 0 0 20',
 				name: 'Swimlane',
-//				label: 'Teams',
 				inputValue: 'Project'
 			},
 			{
 				xtype: 'rallyradiofield',
-				margin: '0 0 15 50',
+				margin: '0 0 15 20',
 				fieldLabel: 'None',
 				name: 'Swimlane',
 				inputValue: ''
@@ -263,10 +345,15 @@
 	},
 	config: {
 		defaultSettings: {
-			PIStateFilter: '-- No Entry --',
-			PITypeField: 'Feature',
+			showAddnew: false,
+			cardFields: "Name,Owner",
 			SortCol: 'Rank',
-			Swimlane: 'Project'
+			Swimlane: 'Project',
+			hdrFontSize: '16',
+			showParent: true,
+			useFColor: false,
+			usePColor: true,
+			showCounts: true
 		}
 	},
 	getQueryFilter: function () {
@@ -291,6 +378,9 @@
     <style type="text/css">
         .app {
   /* Add app styles here */
+}
+.app p {
+  margin: 0;
 }
 
     </style>

@@ -15,16 +15,27 @@ disabled in APP Settings.
 ## How to Use
 
 You can use the APP at your ART or team level to breakdown and organize the program increment features.
-Selecting a story ID will pop the quick details page  (QDP)to the right to further complete any story details.
+Selecting a story ID will pop the quick details page (QDP) to the right to further complete any story details.
 
 NOTE: If a row is not displayed, that indicates that there is not a User Story assigned to that Team.
 You can select a User Story, and on the QDP, select the desired Project and it will now display on the 
 board.
 
-There are new APP options under the APP gear->Edit App Settings. Here is a screenshot. You can easily filter
-the Features (or lowest level PI) using the State picker. You can also change the base Portfolio Item name if your
-default configuration does not use "Feature" as the lowest level PI. You can also configure sort and swim lane
-options. The query field applies to filtering user story cards if needed.
+There are new APP options under the APP gear->Edit App Settings. Here is a screenshot below. You can configure:
+* Card Fields - Pick the fields that appear on the story cards.
+* Column Settings (These settings apply to the column header/title)
+  * Column Header Font Size - size in pixels for header text (the cCunts are reduced by 4)
+  * Show Parent - Show the ID and name of Feature parent item.
+  * Color for Feature Title - Use Feature display color for the name text
+  * Color for Parent Title - Use the parent display color for the parent name text
+  * Show Counts - Display the Feature Estimate value and the roll-up story point counts
+  * Sort By
+    * Parent - Group the Features by the rank order of the Parent Item
+    * Rank - Use the Feature rank from left to right
+* Swimlanes
+  * Team - Use the Project (Team) as swimlane
+  * None - No swimlanes
+* Query - applies to filtering user story cards on board if needed. See "query help" link.
 
 ![Story Map](https://raw.github.com/RallyRonnie/PIFeatureMap/master/settings.png)
 
