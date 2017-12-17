@@ -7,7 +7,18 @@
 
     <script type="text/javascript">
         Rally.onReady(function () {
-                Ext.define('FeatureMap', {
+                // code to compress rows (rows of child projects with same iteration name)
+// UNCOMMENT THIS  - WARNING - Can't get this to work...
+//	Ext.define('Rally.ui.cardboard.row.RowFix', {
+//		override: 'Rally.ui.cardboard.row.Row',
+//	
+//		isMatchingRecord: function(record) {
+//			return this.callParent(arguments) ||
+//				this.getValue().Name === (record.get('Iteration') && record.get('Iteration').Name);
+//		}
+//	});
+//
+Ext.define('FeatureMap', {
     extend: 'Rally.app.TimeboxScopedApp',
     componentCls: 'app',
     scopeType: 'release',
@@ -329,6 +340,13 @@ _DrawBoard: function () {
 				margin: '0 0 0 20',
 				name: 'Swimlane',
 				inputValue: 'Project'
+			},
+			{
+				xtype: 'rallyradiofield',
+				fieldLabel: 'Iterations',
+				margin: '0 0 0 20',
+				name: 'Swimlane',
+				inputValue: 'Iteration'
 			},
 			{
 				xtype: 'rallyradiofield',
